@@ -13,7 +13,7 @@ import 'from_native.dart';
 import 'to_native.dart';
 
 /// the Kraken JS Bridge Size
-int kKrakenJSBridgePoolSize = 8;
+int kKrakenJSBridgePoolSize = 100;
 
 bool _firstView = true;
 
