@@ -170,9 +170,9 @@ abstract class RenderStyle {
   // for class that extends [AbstractRenderStyle].
   RenderBoxModel? get renderBoxModel => target.renderBoxModel;
 
-  Size get viewportSize => target.elementManager.viewport.viewportSize;
+  Size get viewportSize => target.ownerDocument.viewport.viewportSize;
 
-  double get rootFontSize => target.elementManager.getRootFontSize();
+  double get rootFontSize => target.ownerDocument.documentElement!.renderStyle.fontSize.computedValue;
 }
 
 class CSSRenderStyle
@@ -896,6 +896,18 @@ class CSSRenderStyle
       parentRenderStyle = grandParentRenderStyle;
     }
     return parentRenderStyle;
+  }
+
+  // Whether current renderStyle is ancestor for child renderStyle in the renderStyle tree.
+  bool isAncestorOf(RenderStyle childRenderStyle) {
+    RenderStyle? parentRenderStyle = childRenderStyle.parent;
+    while(parentRenderStyle != null) {
+      if (parentRenderStyle == this) {
+        return true;
+      }
+      parentRenderStyle = parentRenderStyle.parent;
+    }
+    return false;
   }
 }
 
