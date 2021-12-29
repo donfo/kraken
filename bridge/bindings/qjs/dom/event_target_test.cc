@@ -67,6 +67,26 @@ TEST(EventTarget, propertyEventHandler) {
   EXPECT_EQ(logCalled, true);
 }
 
+TEST(EventTarget, setUnExpectedAttributeEventHandler) {
+  bool static errorCalled = false;
+  bool static logCalled = false;
+  kraken::KrakenPage::consoleMessageHandler = [](void* ctx, const std::string& message, int logLevel) { logCalled = false; };
+  auto bridge = TEST_init([](int32_t contextId, const char* errmsg) {
+    KRAKEN_LOG(VERBOSE) << errmsg;
+    errorCalled = true;
+  });
+  auto& context = bridge->getContext();
+  const char* code =
+      "let div = document.createElement('div'); "
+      "div.onclick = function() { return 1234; };"
+      "document.body.appendChild(div);"
+      "div.onclick = undefined;"
+      "div.click()";
+  bridge->evaluateScript(code, strlen(code), "vm://", 0);
+  EXPECT_EQ(errorCalled, false);
+  EXPECT_EQ(logCalled, false);
+}
+
 TEST(EventTarget, propertyEventOnWindow) {
   bool static errorCalled = false;
   bool static logCalled = false;
@@ -155,4 +175,12 @@ console.log(s.addEventListener, s.removeEventListener)
 
   EXPECT_EQ(errorCalled, false);
   EXPECT_EQ(logCalled, true);
+}
+
+TEST(EventTarget, wontLeakWithStringProperty) {
+  auto bridge = TEST_init();
+  std::string code =
+      "var img = new Image();\n"
+      "img.any = '1234'";
+  bridge->evaluateScript(code.c_str(), code.size(), "internal://", 0);
 }
